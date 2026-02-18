@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --fg: #e8e4df;
+  --fg-dim: #6b6560;
+  --fg-mid: #9a9490;
+  --accent: #c8b8a8;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'DM Sans', -apple-system, sans-serif;
+  --grain-opacity: 0.03;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Film grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
+}
+
+/* Loading screen */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.hidden { opacity: 0; visibility: hidden; }
+#loader .line {
+  width: 60px;
+  height: 1px;
+  background: var(--fg-dim);
+  position: relative;
+  overflow: hidden;
+}
+#loader .line::after {
+  content: '';
+  position: absolute;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--fg);
+  animation: load-sweep 1.2s ease-in-out infinite;
+}
+@keyframes load-sweep {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Navigation */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 28px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  mix-blend-mode: difference;
+}
+nav .logo {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+}
+nav .nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+nav .nav-links a {
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  position: relative;
+  padding-bottom: 2px;
+}
+nav .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #fff;
+  transition: width 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+nav .nav-links a:hover::after { width: 100%; }
+
+/* Hero */
+.hero {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 40px 80px;
+  position: relative;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  font-weight: 300;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fade-up 1s ease forwards 0.5s;
+}
+.hero-title em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--accent);
+}
+.hero-subtitle {
+  margin-top: 28px;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  opacity: 0;
+  animation: fade-up 1s ease forwards 0.9s;
+}
+.hero .scroll-cue {
+  position: absolute;
+  bottom: 32px;
+  right: 40px;
+  writing-mode: vertical-rl;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  opacity: 0;
+  animation: fade-up 1s ease forwards 1.2s;
+}
+.hero .scroll-cue::after {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 40px;
+  background: var(--fg-dim);
+  margin-top: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: scroll-line 2s ease-in-out infinite;
+}
+@keyframes scroll-line {
+  0%, 100% { transform: scaleY(1); opacity: 0.5; }
+  50% { transform: scaleY(0.4); opacity: 1; }
+}
+
+/* Section titles */
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 60px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+
+/* Works section */
+#works {
+  padding: 120px 40px;
+}
+
+.works-grid {
+  display: grid;
+  gap: 100px;
+}
+
+.work-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(60px);
+  transition: all 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.work-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.work-item:nth-child(even) { direction: rtl; }
+.work-item:nth-child(even) > * { direction: ltr; }
+
+.work-thumbnail {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  background: #141414;
+  cursor: pointer;
+}
+.work-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  filter: grayscale(20%);
+}
+.work-thumbnail:hover img {
+  transform: scale(1.05);
+  filter: grayscale(0%);
+}
+.work-thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+
+.work-info { padding: 20px 0; }
+.work-index {
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  color: var(--fg-dim);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+.work-title {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 300;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.work-category {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 20px;
+}
+.work-description {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--fg-mid);
+  max-width: 400px;
+}
+.work-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+  transition: gap 0.3s ease;
+}
+.work-link:hover { gap: 14px; }
+.work-link::after {
+  content: '→';
+  font-size: 0.9rem;
+  transition: transform 0.3s ease;
+}
+
+/* About section */
+#about {
+  padding: 120px 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+}
+.about-text {
+  font-family: var(--serif);
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--fg-mid);
+}
+.about-text strong {
+  color: var(--fg);
+  font-weight: 400;
+}
+.about-details { padding-top: 10px; }
+.about-details dl {
+  display: grid;
+  gap: 28px;
+}
+.about-details dt {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 6px;
+}
+.about-details dd {
+  font-size: 0.92rem;
+  color: var(--fg);
+}
+
+/* Contact section */
+#contact {
+  padding: 160px 40px;
+  text-align: center;
+}
+#contact .contact-heading {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.1;
+  margin-bottom: 40px;
+  color: var(--accent);
+}
+#contact .contact-email {
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+#contact .contact-email a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--fg-dim);
+  padding-bottom: 4px;
+  transition: border-color 0.3s ease;
+}
+#contact .contact-email a:hover { border-color: var(--fg); }
+
+/* Footer */
+footer {
+  padding: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+footer .social-links { display: flex; gap: 24px; }
+footer .social-links a {
+  color: var(--fg-dim);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+footer .social-links a:hover { color: var(--fg); }
+
+/* Modal / Lightbox */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5,5,5,0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+  cursor: pointer;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content {
+  max-width: 85vw;
+  max-height: 85vh;
+  position: relative;
+}
+.modal-content img {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+}
+.modal-close {
+  position: fixed;
+  top: 28px;
+  right: 40px;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+.modal-close:hover { color: var(--fg); }
+
+/* Error state */
+.error-message {
+  text-align: center;
+  padding: 80px 40px;
+  color: var(--fg-dim);
+  font-size: 0.85rem;
+}
+.error-message code {
+  display: block;
+  margin-top: 16px;
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  opacity: 0.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  nav { padding: 20px 24px; }
+  nav .nav-links { gap: 20px; }
+  nav .nav-links a { font-size: 0.65rem; }
+  .hero { padding: 0 24px 60px; }
+  .hero .scroll-cue { display: none; }
+  #works { padding: 80px 24px; }
+  .work-item { grid-template-columns: 1fr; gap: 24px; }
+  .work-item:nth-child(even) { direction: ltr; }
+  #about { grid-template-columns: 1fr; padding: 80px 24px; gap: 48px; }
+  #contact { padding: 100px 24px; }
+  footer { padding: 28px 24px; flex-direction: column; gap: 16px; }
+}
+
+@keyframes fade-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="line"></div></div>
+
+<nav>
+  <a href="#" class="logo" id="nav-name">Portfolio</a>
+  <ul class="nav-links">
+    <li><a href="#works">Works</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <h1 class="hero-title" id="hero-title">Loading<em>...</em></h1>
+  <p class="hero-subtitle" id="hero-subtitle"></p>
+  <span class="scroll-cue">Scroll</span>
+</section>
+
+<section id="works">
+  <div class="section-label"><span>Selected Works</span></div>
+  <div class="works-grid" id="works-grid">
+    <!-- Works loaded from spreadsheet -->
+  </div>
+</section>
+
+<section id="about">
+  <div>
+    <div class="section-label"><span>About</span></div>
+    <div class="about-text" id="about-text">
+      Loading...
+    </div>
+  </div>
+  <div class="about-details" id="about-details">
+    <dl></dl>
+  </div>
+</section>
+
+<section id="contact">
+  <h2 class="contact-heading">Let's create<br>something together</h2>
+  <div class="contact-email"><a href="" id="contact-email"></a></div>
+</section>
+
+<footer>
+  <span id="footer-copy">© 2026</span>
+  <div class="social-links" id="social-links"></div>
+</footer>
+
+<div class="modal-overlay" id="modal">
+  <button class="modal-close">Close</button>
+  <div class="modal-content">
+    <img src="" alt="" id="modal-img">
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  CONFIGURATION — ここだけ変更すればOK！
+// ============================================================
+//
+//  【設定手順】
+//  1. Googleスプレッドシートを作って、データを入力する
+//  2. 「ファイル」→「共有」→「ウェブに公開」を選ぶ
+//  3. 形式を「CSV」にして公開する
+//  4. 表示されたURLを下のSHEET_URLに貼り付ける
+//
+//  スプレッドシートには2つのシートが必要です：
+//    シート1: 「works」 — 作品データ
+//    シート2: 「profile」 — プロフィールデータ
+//
+//  ※ それぞれ別々に「ウェブに公開」してURLを取得してください
+// ============================================================
+
+const CONFIG = {
+  // ↓ ここにGoogleスプレッドシートの公開URLを貼る
+  WORKS_CSV_URL: '',    // 「works」シートのCSV公開URL
+  PROFILE_CSV_URL: '',  // 「profile」シートのCSV公開URL
+
+  // ↓ もしスプレッドシートがまだ無い場合、以下のデモデータが表示されます
+  // ↓ スプレッドシートのURLを入れればデモは自動的に無効になります
+};
+
+// ============================================================
+//  DEMO DATA — スプレッドシート接続前の仮データ
+// ============================================================
+const DEMO_WORKS = [
+  {
+    title: 'Silence Between Frames',
+    category: 'Short Film',
+    description: '静寂の中に潜む感情を、光と影のコントラストで描いた実験的ショートフィルム。',
+    thumbnail: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
+    url: '#',
+    year: '2025'
+  },
+  {
+    title: 'Urban Fragments',
+    category: 'Photography Series',
+    description: '都市の断片を集め、再構成することで見えてくる新しい風景。',
+    thumbnail: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80',
+    url: '#',
+    year: '2025'
+  },
+  {
+    title: 'The Weight of Light',
+    category: 'Video Installation',
+    description: '光の質量を問う映像インスタレーション。自然光の変化を48時間記録した作品。',
+    thumbnail: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800&q=80',
+    url: '#',
+    year: '2024'
+  },
+  {
+    title: 'Nocturne',
+    category: 'Photography',
+    description: '夜の都市が見せる、もうひとつの表情。長時間露光による光跡のシリーズ。',
+    thumbnail: 'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?w=800&q=80',
+    url: '#',
+    year: '2024'
+  }
+];
+
+const DEMO_PROFILE = {
+  name: 'Your Name',
+  tagline: 'Visual Storyteller — Film & Photography',
+  about: '映像と写真を通じて、<strong>日常の中に潜む物語</strong>を探しています。光、時間、空間の関係性に興味を持ち、実験的なアプローチで作品を制作しています。',
+  email: 'hello@example.com',
+  location: 'Tokyo, Japan',
+  tools: 'Premiere Pro, Davinci Resolve, Lightroom',
+  education: '',
+  social_instagram: '',
+  social_vimeo: '',
+  social_youtube: '',
+};
+
+// ============================================================
+//  CSV PARSER
+// ============================================================
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  
+  const parseRow = (row) => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < row.length; i++) {
+      const ch = row[i];
+      if (inQuotes) {
+        if (ch === '"' && row[i+1] === '"') { current += '"'; i++; }
+        else if (ch === '"') { inQuotes = false; }
+        else { current += ch; }
+      } else {
+        if (ch === '"') { inQuotes = true; }
+        else if (ch === ',') { result.push(current.trim()); current = ''; }
+        else { current += ch; }
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const headers = parseRow(lines[0]).map(h => h.toLowerCase().replace(/\s+/g, '_'));
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = parseRow(lines[i]);
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = values[idx] || ''; });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function parseProfile(rows) {
+  if (!rows.length) return null;
+  // Profile sheet: key, value columns
+  const profile = {};
+  rows.forEach(row => {
+    const key = (row.key || row['項目'] || Object.values(row)[0] || '').toLowerCase().replace(/\s+/g, '_');
+    const val = row.value || row['内容'] || Object.values(row)[1] || '';
+    if (key) profile[key] = val;
+  });
+  return profile;
+}
+
+// ============================================================
+//  DATA FETCHING
+// ============================================================
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+  return await res.text();
+}
+
+async function loadData() {
+  let works = DEMO_WORKS;
+  let profile = DEMO_PROFILE;
+
+  // Try loading works from spreadsheet
+  if (CONFIG.WORKS_CSV_URL) {
+    try {
+      const csv = await fetchCSV(CONFIG.WORKS_CSV_URL);
+      const parsed = parseCSV(csv);
+      if (parsed.length) works = parsed;
+    } catch (e) {
+      console.warn('Works CSV load failed, using demo data:', e);
+    }
+  }
+
+  // Try loading profile from spreadsheet
+  if (CONFIG.PROFILE_CSV_URL) {
+    try {
+      const csv = await fetchCSV(CONFIG.PROFILE_CSV_URL);
+      const parsed = parseCSV(csv);
+      const p = parseProfile(parsed);
+      if (p) profile = { ...DEMO_PROFILE, ...p };
+    } catch (e) {
+      console.warn('Profile CSV load failed, using demo data:', e);
+    }
+  }
+
+  return { works, profile };
+}
+
+// ============================================================
+//  RENDERING
+// ============================================================
+function renderProfile(profile) {
+  // Nav
+  document.getElementById('nav-name').textContent = profile.name || 'Portfolio';
+  
+  // Hero
+  const heroTitle = document.getElementById('hero-title');
+  const parts = (profile.name || 'Your Name').split(' ');
+  if (parts.length > 1) {
+    heroTitle.innerHTML = parts.slice(0, -1).join(' ') + '<br><em>' + parts[parts.length - 1] + '</em>';
+  } else {
+    heroTitle.innerHTML = '<em>' + parts[0] + '</em>';
+  }
+  document.getElementById('hero-subtitle').textContent = profile.tagline || '';
+
+  // About
+  document.getElementById('about-text').innerHTML = profile.about || '';
+
+  // About details
+  const dl = document.querySelector('#about-details dl');
+  dl.innerHTML = '';
+  const details = [
+    ['Location', profile.location],
+    ['Tools', profile.tools],
+    ['Education', profile.education],
+  ];
+  details.forEach(([label, value]) => {
+    if (!value) return;
+    dl.innerHTML += `<div><dt>${label}</dt><dd>${value}</dd></div>`;
+  });
+
+  // Contact
+  if (profile.email) {
+    const emailEl = document.getElementById('contact-email');
+    emailEl.href = 'mailto:' + profile.email;
+    emailEl.textContent = profile.email;
+  }
+
+  // Social links
+  const socialEl = document.getElementById('social-links');
+  socialEl.innerHTML = '';
+  const socials = [
+    ['Instagram', profile.social_instagram],
+    ['Vimeo', profile.social_vimeo],
+    ['YouTube', profile.social_youtube],
+  ];
+  socials.forEach(([name, url]) => {
+    if (!url) return;
+    socialEl.innerHTML += `<a href="${url}" target="_blank" rel="noopener">${name}</a>`;
+  });
+
+  // Footer
+  document.getElementById('footer-copy').textContent = `© ${new Date().getFullYear()} ${profile.name || ''}`;
+}
+
+function renderWorks(works) {
+  const grid = document.getElementById('works-grid');
+  grid.innerHTML = '';
+
+  works.forEach((work, i) => {
+    const idx = String(i + 1).padStart(2, '0');
+    const item = document.createElement('div');
+    item.className = 'work-item';
+    
+    const linkHtml = work.url && work.url !== '#'
+      ? `<a href="${work.url}" class="work-link" target="_blank" rel="noopener">View Project</a>`
+      : '';
+
+    item.innerHTML = `
+      <div class="work-thumbnail" data-img="${work.thumbnail || ''}">
+        <img src="${work.thumbnail || ''}" alt="${work.title || ''}" loading="lazy" onerror="this.style.display='none'">
+      </div>
+      <div class="work-info">
+        <div class="work-index">${idx}</div>
+        <h3 class="work-title">${work.title || ''}</h3>
+        <div class="work-category">${work.category || ''}${work.year ? ' — ' + work.year : ''}</div>
+        <p class="work-description">${work.description || ''}</p>
+        ${linkHtml}
+      </div>
+    `;
+    grid.appendChild(item);
+  });
+
+  // Scroll reveal
+  observeWorkItems();
+}
+
+// ============================================================
+//  INTERACTIONS
+// ============================================================
+function observeWorkItems() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.work-item').forEach(item => observer.observe(item));
+}
+
+function setupModal() {
+  const modal = document.getElementById('modal');
+  const modalImg = document.getElementById('modal-img');
+
+  document.addEventListener('click', (e) => {
+    const thumb = e.target.closest('.work-thumbnail');
+    if (thumb) {
+      const src = thumb.dataset.img;
+      if (src) {
+        modalImg.src = src;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+  });
+
+  modal.addEventListener('click', () => {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+async function init() {
+  setupModal();
+
+  const { works, profile } = await loadData();
+  renderProfile(profile);
+  renderWorks(works);
+
+  // Hide loader
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 600);
+}
+
+init();
+</script>
+
+</body>
+</html>
