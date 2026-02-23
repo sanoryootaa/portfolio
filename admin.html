@@ -70,7 +70,7 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
 <div class="toc">
   <a href="#sec-folder">📂 GitHub フォルダ構成・画像アップ</a>
   <a href="#sec-yt">🎬 YouTube URL 変換</a>
-  <a href="#sec-img">🖼 画像URL一括生成</a>
+  <a href="#sec-img">🖼 画像URL 自動生成（GitHubフォルダ読み込み）</a>
   <a href="#sec-snaps">📷 Random Snaps 設定</a>
   <a href="#sec-hero">🎥 Hero 背景設定</a>
   <a href="#sec-sheet">📊 スプレッドシート全項目ガイド</a>
@@ -111,8 +111,17 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
 </div>
 
 <!-- ============ YOUTUBE ============ -->
-<h2 id="sec-yt">🎬 YouTube URL 変換</h2>
-<p>YouTubeの動画URLを貼るだけ。スプレッドシート用の埋め込みURLに変換します。</p>
+<h2 id="sec-yt">🎬 動画の設定</h2>
+<p>2つの方法があります。URLの形式で自動判別されます。</p>
+<div class="card">
+  <div class="card-t">方法① 自前動画（おすすめ）— UIが綺麗</div>
+  <p>動画ファイル（.mp4推奨）をGitHubの該当フォルダにアップ → 下の画像URL生成と同じ要領でURLを作る → スプレッドシートに貼る。YouTubeのロゴやおすすめ動画が出ず、ミニマルなプレーヤーで再生されます。</p>
+  <p>Showreel: 1〜3分、50MB以下推奨。作品動画: 30秒〜2分、30MB以下推奨。</p>
+</div>
+<div class="card">
+  <div class="card-t">方法② YouTube — 容量ゼロ、長い動画向き</div>
+  <p>下のツールでYouTube URLを埋め込みURLに変換 → スプレッドシートに貼る。</p>
+</div>
 
 <div class="tool">
   <label>YouTube URL</label>
@@ -124,43 +133,36 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
 </div>
 
 <!-- ============ IMAGE BATCH ============ -->
-<h2 id="sec-img">🖼 画像URL 一括生成</h2>
-<p>GitHubにアップしたファイル名をまとめて入力 → スプレッドシートに貼るURL一覧を一括生成。</p>
+<h2 id="sec-img">🖼 画像URL 自動生成</h2>
+<p>GitHubのフォルダを選ぶだけ。中のファイルを自動取得してURLを生成します。</p>
 
 <div class="tool">
   <label>フォルダ選択</label>
-  <select id="img-folder" style="padding:8px;border:1px solid #e5e5e5;font-family:var(--font);font-size:var(--sm);width:100%;margin-bottom:8px">
-    <option value="images/works/">images/works/（作品サムネイル）</option>
-    <option value="images/snaps/">images/snaps/（Random Snaps）</option>
-    <option value="images/hero/">images/hero/（ヒーロー背景）</option>
-    <option value="images/profile/">images/profile/（プロフィール写真）</option>
-    <option value="">カスタム（直接入力）</option>
-  </select>
-  <label>ファイル名（1行に1つ、または改行・カンマ区切り）</label>
-  <textarea id="img-in" placeholder="lumina-01.jpg&#10;silence-thumb.jpg&#10;nocturne-01.jpg"></textarea>
-  <button class="btn" onclick="genImgs()">一括生成</button>
-  <div class="result" id="img-res"></div>
-  <button class="btn btn-a" id="img-cp" onclick="cp('img-res','img-ok')" style="display:none">全部コピー</button>
-  <span class="copied" id="img-ok">✓ コピーしました</span>
-  <div class="preview" id="img-prev"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn" onclick="fetchGH('images/works')">📂 works</button>
+    <button class="btn" onclick="fetchGH('images/snaps')">📂 snaps</button>
+    <button class="btn" onclick="fetchGH('images/hero')">📂 hero</button>
+    <button class="btn" onclick="fetchGH('images/profile')">📂 profile</button>
+  </div>
+  <div id="gh-status" style="font-size:12px;opacity:.5;margin-bottom:8px"></div>
+  <div id="gh-files"></div>
+  <div style="margin-top:12px;display:none" id="gh-actions">
+    <button class="btn" onclick="selectAllGH()">全選択</button>
+    <button class="btn" onclick="deselectAllGH()">全解除</button>
+    <button class="btn btn-a" onclick="copySelectedURLs()">選択中のURLをコピー</button>
+    <button class="btn btn-a" onclick="copyAsSnaps()">Snaps用（カンマ区切り）でコピー</button>
+    <span class="copied" id="gh-ok">✓ コピーしました</span>
+  </div>
+  <div class="preview" id="gh-prev" style="margin-top:12px"></div>
 </div>
 
 <!-- ============ SNAPS ============ -->
 <h2 id="sec-snaps">📷 Random Snaps 設定</h2>
-<p>snapsフォルダにアップした画像のファイル名を入力 → スプレッドシートのprofileシートに貼る一発テキストを生成。</p>
+<p>上の「🖼 画像URL自動生成」で <b>snaps</b> フォルダを選択 →「Snaps用でコピー」ボタンを押す → profileシートに貼るだけ。</p>
 
-<div class="tool">
-  <label>snaps画像のファイル名（1行に1つ）</label>
-  <textarea id="snap-in" placeholder="snap-01.jpg&#10;snap-02.jpg&#10;snap-03.jpg&#10;snap-04.jpg&#10;snap-05.jpg&#10;snap-06.jpg"></textarea>
-  <button class="btn" onclick="genSnaps()">Snaps用テキスト生成</button>
-  <div class="result" id="snap-res"></div>
-  <button class="btn btn-a" id="snap-cp" onclick="cp('snap-res','snap-ok')" style="display:none">コピー</button>
-  <span class="copied" id="snap-ok">✓ コピーしました</span>
-  <div class="preview" id="snap-prev"></div>
-  <div class="card" style="margin-top:12px">
-    <div class="card-t">貼り方</div>
-    <p>profileシートの A列に <code>snaps</code>、B列に↑のコピー結果をそのまま貼り付け。</p>
-  </div>
+<div class="card">
+  <div class="card-t">貼り方</div>
+  <p>profileシートの A列に <code>snaps</code>、B列にコピーしたテキストをそのまま貼り付け。</p>
 </div>
 
 <!-- ============ HERO ============ -->
@@ -211,7 +213,7 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
   <tr><td>year</td><td>制作年月</td><td>2025.03</td></tr>
   <tr><td>description</td><td>短い説明</td><td>建築と光の作品</td></tr>
   <tr><td>thumbnail</td><td>サムネイルURL（画像URL生成で作る）</td><td></td></tr>
-  <tr><td>video_url</td><td>YouTube埋め込みURL（変換ツールで作る）</td><td></td></tr>
+  <tr><td>video_url</td><td>動画URL（.mp4 or YouTube埋め込みURL）</td><td></td></tr>
   <tr><td>concept</td><td>コンセプト文</td><td></td></tr>
   <tr><td>credits</td><td>クレジット（改行区切り）</td><td>Director: Ryota Sano</td></tr>
   <tr><td>team_size</td><td>人数</td><td>6</td></tr>
@@ -234,7 +236,7 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
   <tr style="background:#f0f4ff"><td colspan="2"><b>メディア</b></td></tr>
   <tr><td>photo_url</td><td>プロフィール写真URL</td></tr>
   <tr><td>hero_video_url</td><td>ヒーロー背景動画URL（.mp4）</td></tr>
-  <tr><td>showreel_url</td><td>YouTube埋め込みURL</td></tr>
+  <tr><td>showreel_url</td><td>Showreel動画URL（.mp4 or YouTube埋め込みURL）</td></tr>
   <tr><td>snaps</td><td>Random Snaps画像URL（カンマ区切り）</td></tr>
   <tr style="background:#f0f4ff"><td colspan="2"><b>SNS</b></td></tr>
   <tr><td>social_instagram</td><td>Instagram URL</td></tr>
@@ -273,6 +275,56 @@ th{background:#f5f5f5;font-weight:600;font-size:11px;letter-spacing:.04em;text-t
 
 <script>
 const BASE='https://sanoryootaa.github.io/portfolio/';
+const API='https://api.github.com/repos/sanoryootaa/portfolio/contents/';
+let ghFiles=[];
+let currentFolder='';
+
+async function fetchGH(folder){
+  const status=document.getElementById('gh-status');
+  const filesEl=document.getElementById('gh-files');
+  const actions=document.getElementById('gh-actions');
+  const prev=document.getElementById('gh-prev');
+  status.textContent='読み込み中...';
+  filesEl.innerHTML='';prev.innerHTML='';actions.style.display='none';
+  currentFolder=folder;
+  try{
+    const res=await fetch(API+folder);
+    if(!res.ok)throw new Error(res.status);
+    const data=await res.json();
+    ghFiles=data.filter(f=>f.type==='file'&&f.name!=='.gitkeep').map(f=>({name:f.name,url:BASE+folder+'/'+f.name}));
+    if(!ghFiles.length){status.textContent='📂 '+folder+' — ファイルがありません。GitHubにアップしてください。';return}
+    status.textContent='📂 '+folder+' — '+ghFiles.length+'件のファイル';
+    filesEl.innerHTML=ghFiles.map((f,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:12px"><input type="checkbox" checked data-i="${i}" class="gh-cb" onchange="updatePreview()"><img src="${f.url}" style="height:40px;width:60px;object-fit:cover;border:1px solid #e5e5e5" onerror="this.style.display='none'"><span style="flex:1;word-break:break-all">${f.name}</span><span style="opacity:.3;font-family:monospace;font-size:10px">${f.url.slice(-30)}</span></label>`).join('');
+    actions.style.display='block';
+    updatePreview();
+  }catch(e){
+    if(e.message==='404'){status.textContent='⚠ フォルダが見つかりません。先にGitHubでフォルダを作成してください。'}
+    else{status.textContent='⚠ エラー: '+e.message}
+  }
+}
+
+function getSelected(){
+  return[...document.querySelectorAll('.gh-cb:checked')].map(cb=>ghFiles[cb.dataset.i])
+}
+function selectAllGH(){document.querySelectorAll('.gh-cb').forEach(c=>c.checked=true);updatePreview()}
+function deselectAllGH(){document.querySelectorAll('.gh-cb').forEach(c=>c.checked=false);updatePreview()}
+function updatePreview(){
+  const sel=getSelected();
+  document.getElementById('gh-prev').innerHTML=sel.map(f=>`<img src="${f.url}" onerror="this.style.display='none'">`).join('');
+}
+
+function copySelectedURLs(){
+  const sel=getSelected();
+  if(!sel.length)return;
+  const text=sel.map(f=>f.url).join('\n');
+  navigator.clipboard.writeText(text).then(()=>flash('gh-ok'));
+}
+function copyAsSnaps(){
+  const sel=getSelected();
+  if(!sel.length)return;
+  const text=sel.map(f=>f.url).join(',');
+  navigator.clipboard.writeText(text).then(()=>flash('gh-ok'));
+}
 
 function convertYT(){
   const input=document.getElementById('yt-in').value.trim();
@@ -287,31 +339,6 @@ function convertYT(){
   else{res.textContent='⚠ YouTubeのURLを正しく入力してください';res.classList.add('show');btn.style.display='none'}
 }
 
-function parseNames(text){return text.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)}
-
-function genImgs(){
-  const folder=document.getElementById('img-folder').value;
-  const names=parseNames(document.getElementById('img-in').value);
-  const res=document.getElementById('img-res'),btn=document.getElementById('img-cp'),prev=document.getElementById('img-prev');
-  if(!names.length){res.textContent='ファイル名を入力してください';res.classList.add('show');return}
-  const urls=names.map(n=>BASE+folder+n);
-  res.textContent=urls.join('\n');
-  res.classList.add('show');
-  btn.style.display='inline-block';
-  prev.innerHTML=urls.map(u=>`<img src="${u}" onerror="this.style.display='none'">`).join('');
-}
-
-function genSnaps(){
-  const names=parseNames(document.getElementById('snap-in').value);
-  const res=document.getElementById('snap-res'),btn=document.getElementById('snap-cp'),prev=document.getElementById('snap-prev');
-  if(!names.length){res.textContent='ファイル名を入力してください';res.classList.add('show');return}
-  const urls=names.map(n=>BASE+'images/snaps/'+n);
-  res.textContent=urls.join(',');
-  res.classList.add('show');
-  btn.style.display='inline-block';
-  prev.innerHTML=urls.map(u=>`<img src="${u}" onerror="this.style.display='none'">`).join('');
-}
-
 function genHero(){
   const name=document.getElementById('hero-in').value.trim();
   const res=document.getElementById('hero-res'),btn=document.getElementById('hero-cp');
@@ -322,15 +349,12 @@ function genHero(){
 }
 
 function cp(id,okId){
-  const text=document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(()=>{
-    const c=document.getElementById(okId);c.classList.add('show');
-    setTimeout(()=>c.classList.remove('show'),2000);
-  });
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>flash(okId));
 }
+function flash(id){const c=document.getElementById(id);c.classList.add('show');setTimeout(()=>c.classList.remove('show'),2000)}
 
-// Enter key support
-['yt-in','hero-in'].forEach(id=>{document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();id==='yt-in'?convertYT():genHero()}})});
+document.getElementById('yt-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();convertYT()}});
+document.getElementById('hero-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();genHero()}});
 </script>
 </body>
 </html>
